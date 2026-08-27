@@ -1,12 +1,12 @@
 {
-  "name": "nama-worker-lu",
+  "name": "utbk-record",
   "main": "worker.js",
   "compatibility_date": "2026-08-27",
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "nama-d1-lu",
-      "database_id": "ID-DATABASE-D1-LU"
+      "database_name": "utbk-tracker",
+      "database_id": "7427a601-142f-4901-afab-96b11c79e97f"
     }
   ]
 }
