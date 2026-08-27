@@ -2,7 +2,14 @@
   "name": "utbk-record",
   "main": "worker.js",
   "compatibility_date": "2026-08-27",
-  "d1_databases": [
+ 
+
+"assets": {
+    "directory": "."
+  },
+
+
+"d1_databases": [
     {
       "binding": "DB",
       "database_name": "utbk-tracker",
