@@ -1,5 +1,4 @@
 const STORAGE_KEY = "utbk_tracker_data";
-
 const TARGET_KEY = "utbk_tracker_target";
 
 
@@ -31,7 +30,41 @@ const $ = id =>
 
 
 // =========================
-// INITIAL SETUP
+// SUBJECT
+// =========================
+
+const SUBJECT_NAMES = {
+
+    "PU":
+        "Penalaran Umum",
+
+    "PPU":
+        "Pengetahuan & Pemahaman Umum",
+
+    "PBM":
+        "Pemahaman Bacaan & Menulis",
+
+    "PK":
+        "Pengetahuan Kuantitatif",
+
+    "Literasi Indonesia":
+        "Literasi Bahasa Indonesia",
+
+    "Literasi Inggris":
+        "Literasi Bahasa Inggris",
+
+    "Penalaran Matematika":
+        "Penalaran Matematika"
+
+};
+
+
+const SUBJECT_LIST =
+    Object.keys(SUBJECT_NAMES);
+
+
+// =========================
+// SETUP
 // =========================
 
 $("dateInput").value =
@@ -49,7 +82,7 @@ $("targetValue").textContent =
 
 
 // =========================
-// SAVE DATA
+// SAVE
 // =========================
 
 function saveData() {
@@ -58,11 +91,12 @@ function saveData() {
         STORAGE_KEY,
         JSON.stringify(records)
     );
+
 }
 
 
 // =========================
-// FORMAT DATE
+// DATE
 // =========================
 
 function formatDate(date) {
@@ -77,11 +111,12 @@ function formatDate(date) {
             year: "numeric"
         }
     );
+
 }
 
 
 // =========================
-// SORT DATA
+// SORT
 // =========================
 
 function getSortedRecords() {
@@ -97,11 +132,41 @@ function getSortedRecords() {
 
         }
     );
+
 }
 
 
 // =========================
-// HTML ESCAPE
+// FILTER
+// =========================
+
+function getFilteredRecords() {
+
+    const subject =
+        $("subjectFilter").value;
+
+
+    const data =
+        getSortedRecords();
+
+
+    if (subject === "all") {
+
+        return data;
+
+    }
+
+
+    return data.filter(
+        record =>
+            record.subject === subject
+    );
+
+}
+
+
+// =========================
+// ESCAPE HTML
 // =========================
 
 function escapeHTML(value) {
@@ -126,22 +191,137 @@ function escapeHTML(value) {
 
             }
         );
+
 }
 
 
 // =========================
-// RENDER EVERYTHING
+// TREND
+// =========================
+
+function getTrend(data) {
+
+    if (data.length < 2) {
+
+        return {
+            value: 0,
+            text: "Belum cukup data",
+            className: "trend-flat"
+        };
+
+    }
+
+
+    const previous =
+        data[data.length - 2].score;
+
+
+    const latest =
+        data[data.length - 1].score;
+
+
+    const difference =
+        latest - previous;
+
+
+    if (difference > 0) {
+
+        return {
+
+            value: difference,
+
+            text:
+                `↑ +${difference}`,
+
+            className:
+                "trend-up"
+
+        };
+
+    }
+
+
+    if (difference < 0) {
+
+        return {
+
+            value: difference,
+
+            text:
+                `↓ ${difference}`,
+
+            className:
+                "trend-down"
+
+        };
+
+    }
+
+
+    return {
+
+        value: 0,
+
+        text:
+            "→ 0",
+
+        className:
+            "trend-flat"
+
+    };
+
+}
+
+
+// =========================
+// RENDER
 // =========================
 
 function render() {
 
     const data =
-        getSortedRecords();
+        getFilteredRecords();
 
 
-    // =====================
-    // STATISTICS
-    // =====================
+    const selectedSubject =
+        $("subjectFilter").value;
+
+
+    renderStats(data);
+
+    renderTarget(data);
+
+    renderFocus();
+
+    renderInsight(data);
+
+    renderSubjectAnalysis();
+
+    renderHistory(data);
+
+    drawChart(data);
+
+
+    if (selectedSubject === "all") {
+
+        $("chartDescription").textContent =
+            "Nilai dari setiap tryout";
+
+    } else {
+
+        $("chartDescription").textContent =
+            `Perkembangan ${SUBJECT_NAMES[selectedSubject]}`;
+
+    }
+
+}
+
+
+// =========================
+// STATS
+// =========================
+
+function renderStats(data) {
 
     $("countStat").textContent =
         data.length;
@@ -157,7 +337,8 @@ function render() {
         data.length
             ? Math.max(
                 ...data.map(
-                    item => item.score
+                    item =>
+                        Number(item.score)
                 )
             )
             : "-";
@@ -168,83 +349,549 @@ function render() {
             ? Math.round(
                 data.reduce(
                     (total, item) =>
-                        total + item.score,
+                        total + Number(item.score),
                     0
                 ) / data.length
             )
             : "-";
 
 
-    if (data.length) {
-
-        const latest =
-            data[data.length - 1];
-
-
-        const best =
-            data.reduce(
-                (a, b) =>
-                    b.score > a.score
-                        ? b
-                        : a
-            );
-
-
-        $("bestDate").textContent =
-            `${best.name} · ${formatDate(best.date)}`;
-
-
-        if (data.length > 1) {
-
-            const previous =
-                data[data.length - 2];
-
-
-            const difference =
-                latest.score -
-                previous.score;
-
-
-            $("latestChange").textContent =
-                difference === 0
-
-                    ? "Sama dari sebelumnya"
-
-                    : `${difference > 0 ? "+" : ""}${difference} dari TO sebelumnya`;
-
-
-            $("latestChange").className =
-                difference > 0
-                    ? "up"
-                    : difference < 0
-                        ? "down"
-                        : "flat";
-
-        } else {
-
-            $("latestChange").textContent =
-                "Tryout pertama";
-
-            $("latestChange").className =
-                "";
-        }
-
-    } else {
-
-        $("bestDate").textContent =
-            "Belum ada data";
+    if (!data.length) {
 
         $("latestChange").textContent =
             "Belum ada data";
 
-        $("latestChange").className =
-            "";
+        $("latestChange").className = "";
+
+        $("bestDate").textContent =
+            "Belum ada data";
+
+        return;
+
     }
 
 
-    // =====================
-    // HISTORY TABLE
-    // =====================
+    const latest =
+        data[data.length - 1];
+
+
+    const best =
+        data.reduce(
+            (a, b) =>
+                b.score > a.score
+                    ? b
+                    : a
+        );
+
+
+    $("bestDate").textContent =
+        `${SUBJECT_NAMES[best.subject] || best.subject} · ${formatDate(best.date)}`;
+
+
+    if (data.length > 1) {
+
+        const previous =
+            data[data.length - 2];
+
+
+        const difference =
+            Number(latest.score) -
+            Number(previous.score);
+
+
+        $("latestChange").textContent =
+            difference === 0
+                ? "Sama dari sebelumnya"
+                : `${difference > 0 ? "+" : ""}${difference} dari sebelumnya`;
+
+
+        $("latestChange").className =
+            difference > 0
+                ? "up"
+                : difference < 0
+                    ? "down"
+                    : "flat";
+
+    } else {
+
+        $("latestChange").textContent =
+            "Tryout pertama";
+
+        $("latestChange").className = "";
+
+    }
+
+}
+
+
+// =========================
+// TARGET
+// =========================
+
+function renderTarget(data) {
+
+    const latest =
+        data.length
+            ? Number(data[data.length - 1].score)
+            : 0;
+
+
+    const progress =
+        target > 0
+            ? Math.min(
+                100,
+                Math.round(
+                    (latest / target) * 100
+                )
+            )
+            : 0;
+
+
+    $("targetProgressBar").style.width =
+        `${progress}%`;
+
+
+    if (!data.length) {
+
+        $("targetProgressText").textContent =
+            "Belum ada nilai";
+
+        return;
+
+    }
+
+
+    if (latest >= target) {
+
+        $("targetProgressText").textContent =
+            `🎯 Target tercapai! ${latest}/${target}`;
+
+    } else {
+
+        const remaining =
+            target - latest;
+
+
+        $("targetProgressText").textContent =
+            `${progress}% · Kurang ${remaining} poin lagi`;
+
+    }
+
+}
+
+
+// =========================
+// FOCUS
+// =========================
+
+function renderFocus() {
+
+    const subjectStats =
+        getSubjectStats();
+
+
+    if (!subjectStats.length) {
+
+        $("focusContent").innerHTML = `
+            <div class="empty-small">
+                Belum cukup data untuk dianalisis.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const sorted =
+        [...subjectStats]
+            .sort(
+                (a, b) => {
+
+                    const scoreDifference =
+                        a.average - b.average;
+
+                    if (scoreDifference !== 0) {
+
+                        return scoreDifference;
+
+                    }
+
+                    return a.trend - b.trend;
+
+                }
+            );
+
+
+    const focus =
+        sorted[0];
+
+
+    let reason;
+
+
+    if (focus.trend < 0) {
+
+        reason =
+            `Nilai terakhir turun ${Math.abs(focus.trend)} poin dari percobaan sebelumnya.`;
+
+    } else if (focus.average < 600) {
+
+        reason =
+            `Rata-rata masih ${Math.round(focus.average)}. Masih punya ruang besar untuk naik.`;
+
+    } else if (focus.trend === 0) {
+
+        reason =
+            "Perkembangan masih datar. Coba evaluasi bagian yang sering salah.";
+
+    } else {
+
+        reason =
+            "Nilainya masih paling rendah dibanding mapel lainnya.";
+
+    }
+
+
+    $("focusContent").innerHTML = `
+
+        <div class="focus-result">
+
+            <strong>
+                ${escapeHTML(focus.name)}
+            </strong>
+
+            <span>
+                Rata-rata ${Math.round(focus.average)}
+                · Terakhir ${focus.latest}
+            </span>
+
+            <div class="focus-reason">
+                ${escapeHTML(reason)}
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+// =========================
+// INSIGHT
+// =========================
+
+function renderInsight(data) {
+
+    const stats =
+        getSubjectStats();
+
+
+    if (!data.length) {
+
+        $("insightContent").innerHTML = `
+            <div class="empty-small">
+                Tambahkan data tryout untuk melihat insight.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const insights = [];
+
+
+    const best =
+        [...stats]
+            .sort(
+                (a, b) =>
+                    b.average - a.average
+            )[0];
+
+
+    const weakest =
+        [...stats]
+            .sort(
+                (a, b) =>
+                    a.average - b.average
+            )[0];
+
+
+    if (best) {
+
+        insights.push(
+            `🏆 <strong>${escapeHTML(best.name)}</strong>
+             menjadi mapel dengan rata-rata tertinggi,
+             yaitu <strong>${Math.round(best.average)}</strong>.`
+        );
+
+    }
+
+
+    if (
+        weakest &&
+        best &&
+        weakest.name !== best.name
+    ) {
+
+        insights.push(
+            `📌 <strong>${escapeHTML(weakest.name)}</strong>
+             punya rata-rata terendah,
+             yaitu <strong>${Math.round(weakest.average)}</strong>.`
+        );
+
+    }
+
+
+    const latest =
+        data[data.length - 1];
+
+
+    if (data.length >= 2) {
+
+        const previous =
+            data[data.length - 2];
+
+
+        const diff =
+            Number(latest.score) -
+            Number(previous.score);
+
+
+        if (diff > 0) {
+
+            insights.push(
+                `📈 Nilai terbaru naik
+                 <strong>${diff} poin</strong>
+                 dibanding tryout sebelumnya.`
+            );
+
+        } else if (diff < 0) {
+
+            insights.push(
+                `📉 Nilai terbaru turun
+                 <strong>${Math.abs(diff)} poin</strong>.
+                 Evaluasi kesalahan dari tryout terakhir.`
+            );
+
+        } else {
+
+            insights.push(
+                `➡️ Nilai terbaru masih sama dengan
+                 tryout sebelumnya.`
+            );
+
+        }
+
+    }
+
+
+    $("insightContent").innerHTML = `
+
+        <div class="insight-list">
+
+            ${
+                insights
+                    .map(
+                        item => `
+                            <div class="insight-item">
+                                ${item}
+                            </div>
+                        `
+                    )
+                    .join("")
+            }
+
+        </div>
+
+    `;
+
+}
+
+
+// =========================
+// SUBJECT STATS
+// =========================
+
+function getSubjectStats() {
+
+    const stats = [];
+
+
+    SUBJECT_LIST.forEach(
+        subject => {
+
+            const data =
+                getSortedRecords()
+                    .filter(
+                        record =>
+                            record.subject === subject
+                    );
+
+
+            if (!data.length) {
+
+                return;
+
+            }
+
+
+            const average =
+                data.reduce(
+                    (total, item) =>
+                        total + Number(item.score),
+                    0
+                ) / data.length;
+
+
+            const latest =
+                Number(
+                    data[data.length - 1].score
+                );
+
+
+            const trend =
+                data.length >= 2
+                    ? latest -
+                        Number(
+                            data[data.length - 2].score
+                        )
+                    : 0;
+
+
+            stats.push({
+
+                subject,
+
+                name:
+                    SUBJECT_NAMES[subject],
+
+                average,
+
+                latest,
+
+                trend,
+
+                count:
+                    data.length
+
+            });
+
+        }
+    );
+
+
+    return stats;
+
+}
+
+
+// =========================
+// SUBJECT ANALYSIS UI
+// =========================
+
+function renderSubjectAnalysis() {
+
+    const stats =
+        getSubjectStats();
+
+
+    const container =
+        $("subjectAnalysis");
+
+
+    if (!stats.length) {
+
+        container.innerHTML = `
+            <div class="empty-small">
+                Belum ada data mapel.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        stats
+            .map(
+                item => {
+
+                    const trendClass =
+                        item.trend > 0
+                            ? "trend-up"
+                            : item.trend < 0
+                                ? "trend-down"
+                                : "trend-flat";
+
+
+                    const trendText =
+                        item.trend > 0
+                            ? `↑ +${item.trend}`
+                            : item.trend < 0
+                                ? `↓ ${item.trend}`
+                                : "→ 0";
+
+
+                    return `
+
+                        <div class="subject-card">
+
+                            <h4>
+                                ${escapeHTML(item.name)}
+                            </h4>
+
+                            <div class="subject-score">
+
+                                <strong>
+                                    ${Math.round(item.average)}
+                                </strong>
+
+                                <span>
+                                    rata-rata
+                                </span>
+
+                            </div>
+
+                            <div class="subject-meta">
+
+                                Terakhir:
+                                <strong>
+                                    ${item.latest}
+                                </strong>
+
+                                ·
+
+                                ${item.count}
+                                tryout
+
+                                ·
+
+                                <span class="${trendClass}">
+                                    ${trendText}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+// =========================
+// HISTORY
+// =========================
+
+function renderHistory(data) {
 
     const tbody =
         $("historyBody");
@@ -272,14 +919,16 @@ function render() {
                     const difference =
                         previous === null
                             ? null
-                            : record.score - previous;
+                            : Number(record.score) -
+                                Number(previous);
 
 
-                    let changeHTML =
-                        "-";
+                    let changeHTML = "-";
 
 
-                    if (difference !== null) {
+                    if (
+                        difference !== null
+                    ) {
 
                         const className =
                             difference > 0
@@ -294,6 +943,7 @@ function render() {
                                 ${difference > 0 ? "+" : ""}
                                 ${difference}
                             </span>`;
+
                     }
 
 
@@ -305,6 +955,18 @@ function render() {
                                 <strong>
                                     ${escapeHTML(record.name)}
                                 </strong>
+                            </td>
+
+                            <td>
+
+                                <span class="subject-badge">
+                                    ${escapeHTML(
+                                        SUBJECT_NAMES[record.subject]
+                                        || record.subject
+                                        || "Mapel lama"
+                                    )}
+                                </span>
+
                             </td>
 
                             <td>
@@ -342,12 +1004,11 @@ function render() {
                         </tr>
 
                     `;
+
                 }
             )
             .join("");
 
-
-    // EMPTY STATE
 
     $("emptyHistory").style.display =
         data.length
@@ -360,8 +1021,6 @@ function render() {
             ? "table-row-group"
             : "none";
 
-
-    // DELETE BUTTONS
 
     document
         .querySelectorAll(".delete-button")
@@ -377,8 +1036,6 @@ function render() {
 
         });
 
-
-    drawChart(data);
 }
 
 
@@ -405,6 +1062,7 @@ function drawChart(data) {
             data.slice(
                 -Number(range)
             );
+
     }
 
 
@@ -418,16 +1076,21 @@ function drawChart(data) {
 
         chart.destroy();
 
+        chart = null;
+
     }
 
 
-    const canvas =
-        $("progressChart");
+    if (!data.length) {
+
+        return;
+
+    }
 
 
     chart =
         new Chart(
-            canvas,
+            $("progressChart"),
             {
 
                 type: "line",
@@ -475,13 +1138,11 @@ function drawChart(data) {
 
                 },
 
-
                 options: {
 
                     responsive: true,
 
                     maintainAspectRatio: false,
-
 
                     plugins: {
 
@@ -491,11 +1152,9 @@ function drawChart(data) {
 
                         },
 
-
                         tooltip: {
 
                             displayColors: false,
-
 
                             callbacks: {
 
@@ -508,7 +1167,6 @@ function drawChart(data) {
                         }
 
                     },
-
 
                     scales: {
 
@@ -540,13 +1198,11 @@ function drawChart(data) {
 
                         },
 
-
                         y: {
 
                             min: 0,
 
                             max: 1000,
-
 
                             grid: {
 
@@ -559,7 +1215,6 @@ function drawChart(data) {
                                     )
 
                             },
-
 
                             ticks: {
 
@@ -587,6 +1242,7 @@ function drawChart(data) {
 
             }
         );
+
 }
 
 
@@ -604,6 +1260,11 @@ $("scoreForm").onsubmit =
             $("nameInput")
                 .value
                 .trim();
+
+
+        const subject =
+            $("subjectInput")
+                .value;
 
 
         const date =
@@ -626,6 +1287,7 @@ $("scoreForm").onsubmit =
 
         if (
             !name ||
+            !subject ||
             !date ||
             Number.isNaN(score) ||
             score < 0 ||
@@ -647,6 +1309,8 @@ $("scoreForm").onsubmit =
                 crypto.randomUUID(),
 
             name,
+
+            subject,
 
             date,
 
@@ -678,7 +1342,7 @@ $("scoreForm").onsubmit =
 
 
 // =========================
-// DELETE RECORD
+// DELETE
 // =========================
 
 function removeRecord(id) {
@@ -693,6 +1357,7 @@ function removeRecord(id) {
     saveData();
 
     render();
+
 }
 
 
@@ -734,7 +1399,7 @@ $("clearAll").onclick =
 
 
 // =========================
-// TARGET
+// SAVE TARGET
 // =========================
 
 $("saveTarget").onclick =
@@ -770,6 +1435,21 @@ $("saveTarget").onclick =
             .textContent =
             target;
 
+
+        render();
+
+    };
+
+
+// =========================
+// FILTER
+// =========================
+
+$("subjectFilter").onchange =
+    () => {
+
+        render();
+
     };
 
 
@@ -778,7 +1458,11 @@ $("saveTarget").onclick =
 // =========================
 
 $("chartRange").onchange =
-    render;
+    () => {
+
+        render();
+
+    };
 
 
 // =========================
