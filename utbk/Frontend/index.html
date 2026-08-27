@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#0b1220">
+
+    <title>UTBK Tracker</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+
+        <div class="brand">
+            <div class="brand-icon">
+                U
+            </div>
+
+            <div>
+                <h1>UTBK Tracker</h1>
+                <p>Track your progress.</p>
+            </div>
+        </div>
+
+        <button id="themeToggle" class="icon-button">
+            ☾
+        </button>
+
+    </header>
+
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <div class="hero-text">
+
+            <span class="eyebrow">
+                PROGRESS DASHBOARD
+            </span>
+
+            <h2>
+                Perkembangan nilai
+                <span>UTBK kamu.</span>
+            </h2>
+
+            <p>
+                Catat setiap tryout dan lihat perjalanan
+                nilai kamu dari waktu ke waktu.
+            </p>
+
+        </div>
+
+
+        <!-- TARGET -->
+        <div class="target-card">
+
+            <div class="target-header">
+                <span>Target nilai</span>
+
+                <strong id="targetValue">
+                    650
+                </strong>
+            </div>
+
+            <div class="target-input">
+
+                <input
+                    id="targetInput"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    value="650"
+                >
+
+                <button id="saveTarget">
+                    Simpan
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- STATISTICS -->
+    <section class="stats">
+
+        <div class="stat-card">
+
+            <span>Tryout</span>
+
+            <strong id="countStat">
+                0
+            </strong>
+
+            <small>
+                Total percobaan
+            </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>Nilai terbaru</span>
+
+            <strong id="latestStat">
+                -
+            </strong>
+
+            <small id="latestChange">
+                Belum ada data
+            </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>Nilai tertinggi</span>
+
+            <strong id="bestStat">
+                -
+            </strong>
+
+            <small id="bestDate">
+                Belum ada data
+            </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>Rata-rata</span>
+
+            <strong id="avgStat">
+                -
+            </strong>
+
+            <small>
+                Semua tryout
+            </small>
+
+        </div>
+
+    </section>
+
+
+    <!-- MAIN CONTENT -->
+    <section class="content">
+
+
+        <!-- GRAPH -->
+        <div class="panel chart-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>
+                        Grafik perkembangan
+                    </h3>
+
+                    <p>
+                        Nilai total dari setiap tryout
+                    </p>
+                </div>
+
+
+                <select id="chartRange">
+
+                    <option value="all">
+                        Semua
+                    </option>
+
+                    <option value="10">
+                        10 terakhir
+                    </option>
+
+                    <option value="5">
+                        5 terakhir
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="chart-container">
+
+                <canvas id="progressChart"></canvas>
+
+                <div id="emptyChart" class="empty">
+
+                    <div class="empty-icon">
+                        📈
+                    </div>
+
+                    <strong>
+                        Belum ada data
+                    </strong>
+
+                    <p>
+                        Tambahkan tryout pertama kamu.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ADD FORM -->
+        <div class="panel add-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>
+                        Tambah tryout
+                    </h3>
+
+                    <p>
+                        Simpan hasil latihan terbaru.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <form id="scoreForm">
+
+
+                <label>
+
+                    Nama tryout
+
+                    <input
+                        id="nameInput"
+                        type="text"
+                        placeholder="Contoh: TO Ruangguru #1"
+                        required
+                    >
+
+                </label>
+
+
+                <label>
+
+                    Tanggal
+
+                    <input
+                        id="dateInput"
+                        type="date"
+                        required
+                    >
+
+                </label>
+
+
+                <label>
+
+                    Nilai total
+
+                    <input
+                        id="scoreInput"
+                        type="number"
+                        min="0"
+                        max="1000"
+                        placeholder="Contoh: 587"
+                        required
+                    >
+
+                </label>
+
+
+                <label>
+
+                    Catatan
+                    <span>(opsional)</span>
+
+                    <textarea
+                        id="noteInput"
+                        rows="3"
+                        placeholder="Contoh: Kurang di PBM dan PK"
+                    ></textarea>
+
+                </label>
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+
+                    ＋ Tambah nilai
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- HISTORY -->
+    <section class="panel history">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Riwayat tryout
+                </h3>
+
+                <p>
+                    Semua hasil yang pernah dicatat.
+                </p>
+
+            </div>
+
+
+            <button
+                id="clearAll"
+                class="danger-button"
+            >
+
+                Hapus semua
+
+            </button>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Tryout
+                        </th>
+
+                        <th>
+                            Tanggal
+                        </th>
+
+                        <th>
+                            Nilai
+                        </th>
+
+                        <th>
+                            Perubahan
+                        </th>
+
+                        <th>
+                            Catatan
+                        </th>
+
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="historyBody">
+                </tbody>
+
+            </table>
+
+
+            <div
+                id="emptyHistory"
+                class="empty-history"
+            >
+
+                <div>
+                    📝
+                </div>
+
+                <strong>
+                    Belum ada riwayat
+                </strong>
+
+                <p>
+                    Data tryout kamu akan muncul di sini.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+
+        UTBK Tracker · Local version
+
+    </footer>
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
