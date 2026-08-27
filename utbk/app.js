@@ -1,22 +1,8 @@
-const STORAGE_KEY = "utbk_tracker_data";
 const TARGET_KEY = "utbk_tracker_target";
 
-
-// =========================
-// DATA
-// =========================
-
-let records =
-    JSON.parse(
-        localStorage.getItem(STORAGE_KEY)
-    ) || [];
-
-
+let records = [];
 let target =
-    Number(
-        localStorage.getItem(TARGET_KEY)
-    ) || 650;
-
+    Number(localStorage.getItem(TARGET_KEY)) || 650;
 
 let chart = null;
 
@@ -30,73 +16,192 @@ const $ = id =>
 
 
 // =========================
-// SUBJECT
+// API
 // =========================
 
-const SUBJECT_NAMES = {
+async function loadRecords() {
 
-    "PU":
-        "Penalaran Umum",
+    try {
 
-    "PPU":
-        "Pengetahuan & Pemahaman Umum",
+        const response =
+            await fetch("/api/scores");
 
-    "PBM":
-        "Pemahaman Bacaan & Menulis",
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
 
-    "PK":
-        "Pengetahuan Kuantitatif",
+        records =
+            await response.json();
 
-    "Literasi Indonesia":
-        "Literasi Bahasa Indonesia",
+        render();
 
-    "Literasi Inggris":
-        "Literasi Bahasa Inggris",
+    } catch (error) {
 
-    "Penalaran Matematika":
-        "Penalaran Matematika"
+        console.error(
+            "Gagal mengambil data:",
+            error
+        );
 
-};
-
-
-const SUBJECT_LIST =
-    Object.keys(SUBJECT_NAMES);
-
-
-// =========================
-// SETUP
-// =========================
-
-$("dateInput").value =
-    new Date()
-        .toISOString()
-        .slice(0, 10);
-
-
-$("targetInput").value =
-    target;
-
-
-$("targetValue").textContent =
-    target;
-
-
-// =========================
-// SAVE
-// =========================
-
-function saveData() {
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(records)
-    );
-
+        alert(
+            "Gagal mengambil data dari D1."
+        );
+    }
 }
 
 
 // =========================
-// DATE
+// SAVE RECORD
+// =========================
+
+async function addRecord(data) {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/scores",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(data)
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.error ||
+                "Gagal menyimpan data."
+            );
+        }
+
+
+        await loadRecords();
+
+
+    } catch (error) {
+
+        console.error(
+            "Gagal menyimpan:",
+            error
+        );
+
+        alert(
+            "Gagal menyimpan nilai ke D1."
+        );
+    }
+}
+
+
+// =========================
+// DELETE RECORD
+// =========================
+
+async function removeRecord(id) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/scores/${encodeURIComponent(id)}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.error ||
+                "Gagal menghapus data."
+            );
+        }
+
+
+        await loadRecords();
+
+
+    } catch (error) {
+
+        console.error(
+            "Gagal menghapus:",
+            error
+        );
+
+        alert(
+            "Gagal menghapus data."
+        );
+    }
+}
+
+
+// =========================
+// DELETE ALL
+// =========================
+
+async function clearAllRecords() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/scores",
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.error ||
+                "Gagal menghapus data."
+            );
+        }
+
+
+        await loadRecords();
+
+
+    } catch (error) {
+
+        console.error(
+            "Gagal menghapus semua:",
+            error
+        );
+
+        alert(
+            "Gagal menghapus semua data."
+        );
+    }
+}
+
+
+// =========================
+// FORMAT DATE
 // =========================
 
 function formatDate(date) {
@@ -111,7 +216,6 @@ function formatDate(date) {
             year: "numeric"
         }
     );
-
 }
 
 
@@ -127,46 +231,17 @@ function getSortedRecords() {
             return (
                 a.date.localeCompare(b.date)
                 ||
-                a.created - b.created
+                Number(a.created) -
+                Number(b.created)
             );
 
         }
     );
-
 }
 
 
 // =========================
-// FILTER
-// =========================
-
-function getFilteredRecords() {
-
-    const subject =
-        $("subjectFilter").value;
-
-
-    const data =
-        getSortedRecords();
-
-
-    if (subject === "all") {
-
-        return data;
-
-    }
-
-
-    return data.filter(
-        record =>
-            record.subject === subject
-    );
-
-}
-
-
-// =========================
-// ESCAPE HTML
+// HTML ESCAPE
 // =========================
 
 function escapeHTML(value) {
@@ -174,7 +249,6 @@ function escapeHTML(value) {
     return String(value)
         .replace(
             /[&<>"']/g,
-
             char => {
 
                 const map = {
@@ -188,88 +262,8 @@ function escapeHTML(value) {
                 };
 
                 return map[char];
-
             }
         );
-
-}
-
-
-// =========================
-// TREND
-// =========================
-
-function getTrend(data) {
-
-    if (data.length < 2) {
-
-        return {
-            value: 0,
-            text: "Belum cukup data",
-            className: "trend-flat"
-        };
-
-    }
-
-
-    const previous =
-        data[data.length - 2].score;
-
-
-    const latest =
-        data[data.length - 1].score;
-
-
-    const difference =
-        latest - previous;
-
-
-    if (difference > 0) {
-
-        return {
-
-            value: difference,
-
-            text:
-                `↑ +${difference}`,
-
-            className:
-                "trend-up"
-
-        };
-
-    }
-
-
-    if (difference < 0) {
-
-        return {
-
-            value: difference,
-
-            text:
-                `↓ ${difference}`,
-
-            className:
-                "trend-down"
-
-        };
-
-    }
-
-
-    return {
-
-        value: 0,
-
-        text:
-            "→ 0",
-
-        className:
-            "trend-flat"
-
-    };
-
 }
 
 
@@ -280,48 +274,12 @@ function getTrend(data) {
 function render() {
 
     const data =
-        getFilteredRecords();
+        getSortedRecords();
 
 
-    const selectedSubject =
-        $("subjectFilter").value;
-
-
-    renderStats(data);
-
-    renderTarget(data);
-
-    renderFocus();
-
-    renderInsight(data);
-
-    renderSubjectAnalysis();
-
-    renderHistory(data);
-
-    drawChart(data);
-
-
-    if (selectedSubject === "all") {
-
-        $("chartDescription").textContent =
-            "Nilai dari setiap tryout";
-
-    } else {
-
-        $("chartDescription").textContent =
-            `Perkembangan ${SUBJECT_NAMES[selectedSubject]}`;
-
-    }
-
-}
-
-
-// =========================
-// STATS
-// =========================
-
-function renderStats(data) {
+    // =====================
+    // STATISTICS
+    // =====================
 
     $("countStat").textContent =
         data.length;
@@ -349,549 +307,83 @@ function renderStats(data) {
             ? Math.round(
                 data.reduce(
                     (total, item) =>
-                        total + Number(item.score),
+                        total +
+                        Number(item.score),
                     0
                 ) / data.length
             )
             : "-";
 
 
-    if (!data.length) {
+    if (data.length) {
 
-        $("latestChange").textContent =
-            "Belum ada data";
+        const latest =
+            data[data.length - 1];
 
-        $("latestChange").className = "";
+
+        const best =
+            data.reduce(
+                (a, b) =>
+                    Number(b.score) >
+                    Number(a.score)
+                        ? b
+                        : a
+            );
+
+
+        $("bestDate").textContent =
+            `${best.name} · ${formatDate(best.date)}`;
+
+
+        if (data.length > 1) {
+
+            const previous =
+                data[data.length - 2];
+
+
+            const difference =
+                Number(latest.score) -
+                Number(previous.score);
+
+
+            $("latestChange").textContent =
+                difference === 0
+                    ? "Sama dari sebelumnya"
+                    : `${difference > 0 ? "+" : ""}${difference} dari TO sebelumnya`;
+
+
+            $("latestChange").className =
+                difference > 0
+                    ? "up"
+                    : difference < 0
+                        ? "down"
+                        : "flat";
+
+        } else {
+
+            $("latestChange").textContent =
+                "Tryout pertama";
+
+            $("latestChange").className =
+                "";
+        }
+
+    } else {
 
         $("bestDate").textContent =
             "Belum ada data";
 
-        return;
-
-    }
-
-
-    const latest =
-        data[data.length - 1];
-
-
-    const best =
-        data.reduce(
-            (a, b) =>
-                b.score > a.score
-                    ? b
-                    : a
-        );
-
-
-    $("bestDate").textContent =
-        `${SUBJECT_NAMES[best.subject] || best.subject} · ${formatDate(best.date)}`;
-
-
-    if (data.length > 1) {
-
-        const previous =
-            data[data.length - 2];
-
-
-        const difference =
-            Number(latest.score) -
-            Number(previous.score);
-
-
         $("latestChange").textContent =
-            difference === 0
-                ? "Sama dari sebelumnya"
-                : `${difference > 0 ? "+" : ""}${difference} dari sebelumnya`;
-
+            "Belum ada data";
 
         $("latestChange").className =
-            difference > 0
-                ? "up"
-                : difference < 0
-                    ? "down"
-                    : "flat";
-
-    } else {
-
-        $("latestChange").textContent =
-            "Tryout pertama";
-
-        $("latestChange").className = "";
-
-    }
-
-}
-
-
-// =========================
-// TARGET
-// =========================
-
-function renderTarget(data) {
-
-    const latest =
-        data.length
-            ? Number(data[data.length - 1].score)
-            : 0;
-
-
-    const progress =
-        target > 0
-            ? Math.min(
-                100,
-                Math.round(
-                    (latest / target) * 100
-                )
-            )
-            : 0;
-
-
-    $("targetProgressBar").style.width =
-        `${progress}%`;
-
-
-    if (!data.length) {
-
-        $("targetProgressText").textContent =
-            "Belum ada nilai";
-
-        return;
-
+            "";
     }
 
 
-    if (latest >= target) {
-
-        $("targetProgressText").textContent =
-            `🎯 Target tercapai! ${latest}/${target}`;
-
-    } else {
-
-        const remaining =
-            target - latest;
-
-
-        $("targetProgressText").textContent =
-            `${progress}% · Kurang ${remaining} poin lagi`;
-
-    }
-
-}
-
-
-// =========================
-// FOCUS
-// =========================
-
-function renderFocus() {
-
-    const subjectStats =
-        getSubjectStats();
-
-
-    if (!subjectStats.length) {
-
-        $("focusContent").innerHTML = `
-            <div class="empty-small">
-                Belum cukup data untuk dianalisis.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    const sorted =
-        [...subjectStats]
-            .sort(
-                (a, b) => {
-
-                    const scoreDifference =
-                        a.average - b.average;
-
-                    if (scoreDifference !== 0) {
-
-                        return scoreDifference;
-
-                    }
-
-                    return a.trend - b.trend;
-
-                }
-            );
-
-
-    const focus =
-        sorted[0];
-
-
-    let reason;
-
-
-    if (focus.trend < 0) {
-
-        reason =
-            `Nilai terakhir turun ${Math.abs(focus.trend)} poin dari percobaan sebelumnya.`;
-
-    } else if (focus.average < 600) {
-
-        reason =
-            `Rata-rata masih ${Math.round(focus.average)}. Masih punya ruang besar untuk naik.`;
-
-    } else if (focus.trend === 0) {
-
-        reason =
-            "Perkembangan masih datar. Coba evaluasi bagian yang sering salah.";
-
-    } else {
-
-        reason =
-            "Nilainya masih paling rendah dibanding mapel lainnya.";
-
-    }
-
-
-    $("focusContent").innerHTML = `
-
-        <div class="focus-result">
-
-            <strong>
-                ${escapeHTML(focus.name)}
-            </strong>
-
-            <span>
-                Rata-rata ${Math.round(focus.average)}
-                · Terakhir ${focus.latest}
-            </span>
-
-            <div class="focus-reason">
-                ${escapeHTML(reason)}
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-// =========================
-// INSIGHT
-// =========================
-
-function renderInsight(data) {
-
-    const stats =
-        getSubjectStats();
-
-
-    if (!data.length) {
-
-        $("insightContent").innerHTML = `
-            <div class="empty-small">
-                Tambahkan data tryout untuk melihat insight.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    const insights = [];
-
-
-    const best =
-        [...stats]
-            .sort(
-                (a, b) =>
-                    b.average - a.average
-            )[0];
-
-
-    const weakest =
-        [...stats]
-            .sort(
-                (a, b) =>
-                    a.average - b.average
-            )[0];
-
-
-    if (best) {
-
-        insights.push(
-            `🏆 <strong>${escapeHTML(best.name)}</strong>
-             menjadi mapel dengan rata-rata tertinggi,
-             yaitu <strong>${Math.round(best.average)}</strong>.`
-        );
-
-    }
-
-
-    if (
-        weakest &&
-        best &&
-        weakest.name !== best.name
-    ) {
-
-        insights.push(
-            `📌 <strong>${escapeHTML(weakest.name)}</strong>
-             punya rata-rata terendah,
-             yaitu <strong>${Math.round(weakest.average)}</strong>.`
-        );
-
-    }
-
-
-    const latest =
-        data[data.length - 1];
-
-
-    if (data.length >= 2) {
-
-        const previous =
-            data[data.length - 2];
-
-
-        const diff =
-            Number(latest.score) -
-            Number(previous.score);
-
-
-        if (diff > 0) {
-
-            insights.push(
-                `📈 Nilai terbaru naik
-                 <strong>${diff} poin</strong>
-                 dibanding tryout sebelumnya.`
-            );
-
-        } else if (diff < 0) {
-
-            insights.push(
-                `📉 Nilai terbaru turun
-                 <strong>${Math.abs(diff)} poin</strong>.
-                 Evaluasi kesalahan dari tryout terakhir.`
-            );
-
-        } else {
-
-            insights.push(
-                `➡️ Nilai terbaru masih sama dengan
-                 tryout sebelumnya.`
-            );
-
-        }
-
-    }
-
-
-    $("insightContent").innerHTML = `
-
-        <div class="insight-list">
-
-            ${
-                insights
-                    .map(
-                        item => `
-                            <div class="insight-item">
-                                ${item}
-                            </div>
-                        `
-                    )
-                    .join("")
-            }
-
-        </div>
-
-    `;
-
-}
-
-
-// =========================
-// SUBJECT STATS
-// =========================
-
-function getSubjectStats() {
-
-    const stats = [];
-
-
-    SUBJECT_LIST.forEach(
-        subject => {
-
-            const data =
-                getSortedRecords()
-                    .filter(
-                        record =>
-                            record.subject === subject
-                    );
-
-
-            if (!data.length) {
-
-                return;
-
-            }
-
-
-            const average =
-                data.reduce(
-                    (total, item) =>
-                        total + Number(item.score),
-                    0
-                ) / data.length;
-
-
-            const latest =
-                Number(
-                    data[data.length - 1].score
-                );
-
-
-            const trend =
-                data.length >= 2
-                    ? latest -
-                        Number(
-                            data[data.length - 2].score
-                        )
-                    : 0;
-
-
-            stats.push({
-
-                subject,
-
-                name:
-                    SUBJECT_NAMES[subject],
-
-                average,
-
-                latest,
-
-                trend,
-
-                count:
-                    data.length
-
-            });
-
-        }
-    );
-
-
-    return stats;
-
-}
-
-
-// =========================
-// SUBJECT ANALYSIS UI
-// =========================
-
-function renderSubjectAnalysis() {
-
-    const stats =
-        getSubjectStats();
-
-
-    const container =
-        $("subjectAnalysis");
-
-
-    if (!stats.length) {
-
-        container.innerHTML = `
-            <div class="empty-small">
-                Belum ada data mapel.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        stats
-            .map(
-                item => {
-
-                    const trendClass =
-                        item.trend > 0
-                            ? "trend-up"
-                            : item.trend < 0
-                                ? "trend-down"
-                                : "trend-flat";
-
-
-                    const trendText =
-                        item.trend > 0
-                            ? `↑ +${item.trend}`
-                            : item.trend < 0
-                                ? `↓ ${item.trend}`
-                                : "→ 0";
-
-
-                    return `
-
-                        <div class="subject-card">
-
-                            <h4>
-                                ${escapeHTML(item.name)}
-                            </h4>
-
-                            <div class="subject-score">
-
-                                <strong>
-                                    ${Math.round(item.average)}
-                                </strong>
-
-                                <span>
-                                    rata-rata
-                                </span>
-
-                            </div>
-
-                            <div class="subject-meta">
-
-                                Terakhir:
-                                <strong>
-                                    ${item.latest}
-                                </strong>
-
-                                ·
-
-                                ${item.count}
-                                tryout
-
-                                ·
-
-                                <span class="${trendClass}">
-                                    ${trendText}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-// =========================
-// HISTORY
-// =========================
-
-function renderHistory(data) {
+    // =====================
+    // HISTORY
+    // =====================
 
     const tbody =
         $("historyBody");
@@ -912,18 +404,23 @@ function renderHistory(data) {
 
                     const previous =
                         index > 0
-                            ? data[index - 1].score
+                            ? Number(
+                                data[index - 1]
+                                    .score
+                            )
                             : null;
 
 
                     const difference =
                         previous === null
                             ? null
-                            : Number(record.score) -
-                                Number(previous);
+                            : Number(
+                                record.score
+                            ) - previous;
 
 
-                    let changeHTML = "-";
+                    let changeHTML =
+                        "-";
 
 
                     if (
@@ -943,30 +440,16 @@ function renderHistory(data) {
                                 ${difference > 0 ? "+" : ""}
                                 ${difference}
                             </span>`;
-
                     }
 
 
                     return `
-
                         <tr>
 
                             <td>
                                 <strong>
                                     ${escapeHTML(record.name)}
                                 </strong>
-                            </td>
-
-                            <td>
-
-                                <span class="subject-badge">
-                                    ${escapeHTML(
-                                        SUBJECT_NAMES[record.subject]
-                                        || record.subject
-                                        || "Mapel lama"
-                                    )}
-                                </span>
-
                             </td>
 
                             <td>
@@ -984,7 +467,9 @@ function renderHistory(data) {
                             <td>
                                 ${
                                     record.note
-                                        ? escapeHTML(record.note)
+                                        ? escapeHTML(
+                                            record.note
+                                        )
                                         : "—"
                                 }
                             </td>
@@ -993,7 +478,7 @@ function renderHistory(data) {
 
                                 <button
                                     class="delete-button"
-                                    data-id="${record.id}"
+                                    data-id="${escapeHTML(record.id)}"
                                     title="Hapus"
                                 >
                                     ✕
@@ -1002,13 +487,13 @@ function renderHistory(data) {
                             </td>
 
                         </tr>
-
                     `;
-
                 }
             )
             .join("");
 
+
+    // EMPTY HISTORY
 
     $("emptyHistory").style.display =
         data.length
@@ -1022,13 +507,15 @@ function renderHistory(data) {
             : "none";
 
 
+    // DELETE BUTTON
+
     document
         .querySelectorAll(".delete-button")
         .forEach(button => {
 
-            button.onclick = () => {
+            button.onclick = async () => {
 
-                removeRecord(
+                await removeRecord(
                     button.dataset.id
                 );
 
@@ -1036,6 +523,8 @@ function renderHistory(data) {
 
         });
 
+
+    drawChart(data);
 }
 
 
@@ -1062,7 +551,6 @@ function drawChart(data) {
             data.slice(
                 -Number(range)
             );
-
     }
 
 
@@ -1077,22 +565,22 @@ function drawChart(data) {
         chart.destroy();
 
         chart = null;
-
     }
 
 
     if (!data.length) {
-
         return;
-
     }
+
+
+    const canvas =
+        $("progressChart");
 
 
     chart =
         new Chart(
-            $("progressChart"),
+            canvas,
             {
-
                 type: "line",
 
                 data: {
@@ -1110,7 +598,9 @@ function drawChart(data) {
                             data:
                                 shown.map(
                                     item =>
-                                        item.score
+                                        Number(
+                                            item.score
+                                        )
                                 ),
 
                             borderWidth: 3,
@@ -1147,9 +637,7 @@ function drawChart(data) {
                     plugins: {
 
                         legend: {
-
                             display: false
-
                         },
 
                         tooltip: {
@@ -1173,9 +661,7 @@ function drawChart(data) {
                         x: {
 
                             grid: {
-
                                 display: false
-
                             },
 
                             ticks: {
@@ -1189,9 +675,7 @@ function drawChart(data) {
                                     ),
 
                                 font: {
-
                                     size: 10
-
                                 }
 
                             }
@@ -1227,9 +711,7 @@ function drawChart(data) {
                                     ),
 
                                 font: {
-
                                     size: 10
-
                                 }
 
                             }
@@ -1242,16 +724,15 @@ function drawChart(data) {
 
             }
         );
-
 }
 
 
 // =========================
-// ADD RECORD
+// ADD FORM
 // =========================
 
 $("scoreForm").onsubmit =
-    event => {
+    async event => {
 
         event.preventDefault();
 
@@ -1260,11 +741,6 @@ $("scoreForm").onsubmit =
             $("nameInput")
                 .value
                 .trim();
-
-
-        const subject =
-            $("subjectInput")
-                .value;
 
 
         const date =
@@ -1287,9 +763,8 @@ $("scoreForm").onsubmit =
 
         if (
             !name ||
-            !subject ||
             !date ||
-            Number.isNaN(score) ||
+            !Number.isFinite(score) ||
             score < 0 ||
             score > 1000
         ) {
@@ -1299,32 +774,17 @@ $("scoreForm").onsubmit =
             );
 
             return;
-
         }
 
 
-        records.push({
-
-            id:
-                crypto.randomUUID(),
+        await addRecord({
 
             name,
-
-            subject,
-
             date,
-
             score,
-
-            note,
-
-            created:
-                Date.now()
+            note
 
         });
-
-
-        saveData();
 
 
         event.target.reset();
@@ -1334,44 +794,18 @@ $("scoreForm").onsubmit =
             new Date()
                 .toISOString()
                 .slice(0, 10);
-
-
-        render();
-
     };
 
 
 // =========================
-// DELETE
-// =========================
-
-function removeRecord(id) {
-
-    records =
-        records.filter(
-            item =>
-                item.id !== id
-        );
-
-
-    saveData();
-
-    render();
-
-}
-
-
-// =========================
-// DELETE ALL
+// CLEAR ALL
 // =========================
 
 $("clearAll").onclick =
-    () => {
+    async () => {
 
         if (!records.length) {
-
             return;
-
         }
 
 
@@ -1382,25 +816,24 @@ $("clearAll").onclick =
 
 
         if (!confirmed) {
-
             return;
-
         }
 
 
-        records = [];
-
-
-        saveData();
-
-        render();
-
+        await clearAllRecords();
     };
 
 
 // =========================
-// SAVE TARGET
+// TARGET
 // =========================
+
+$("targetInput").value =
+    target;
+
+$("targetValue").textContent =
+    target;
+
 
 $("saveTarget").onclick =
     () => {
@@ -1434,22 +867,6 @@ $("saveTarget").onclick =
         $("targetValue")
             .textContent =
             target;
-
-
-        render();
-
-    };
-
-
-// =========================
-// FILTER
-// =========================
-
-$("subjectFilter").onchange =
-    () => {
-
-        render();
-
     };
 
 
@@ -1458,11 +875,7 @@ $("subjectFilter").onchange =
 // =========================
 
 $("chartRange").onchange =
-    () => {
-
-        render();
-
-    };
+    render;
 
 
 // =========================
@@ -1502,7 +915,6 @@ $("themeToggle").onclick =
 
 
         render();
-
     };
 
 
@@ -1523,12 +935,21 @@ if (
 
     $("themeToggle")
         .textContent = "☀";
-
 }
 
 
 // =========================
-// FIRST RENDER
+// DATE DEFAULT
 // =========================
 
-render();
+$("dateInput").value =
+    new Date()
+        .toISOString()
+        .slice(0, 10);
+
+
+// =========================
+// START
+// =========================
+
+loadRecords();
