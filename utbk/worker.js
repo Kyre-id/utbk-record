@@ -896,18 +896,10 @@ type OrderRow = {
 };
 export default {
   async fetch(request, env) {
-    const result = await env.DB.prepare(
-      "SELECT Id, CustomerName, OrderDate FROM [Order] ORDER BY ShippedDate DESC LIMIT 100",
-    ).run<OrderRow>();
-    return new Response(JSON.stringify(result));
-  }
-}
-export default {
-  async fetch(request, env) {
     const result = await env.DB
-    .prepare(
-      "SELECT * FROM [Order] ORDER LIMIT 100",
-    ).run();
-    return new Response(JSON.stringify(result));
+      .prepare("SELECT 1 AS test")
+      .first();
+
+    return Response.json(result);
   }
-}
+};
