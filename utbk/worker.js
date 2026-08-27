@@ -1,10 +1,7 @@
 export default {
     async fetch(request, env) {
-        const url = new URL(request.url);
 
-        // =========================
-        // CORS
-        // =========================
+        const url = new URL(request.url);
 
         const corsHeaders = {
             "Access-Control-Allow-Origin": "*",
@@ -13,7 +10,11 @@ export default {
             "Content-Type": "application/json"
         };
 
-        // Handle CORS preflight
+
+        // =========================
+        // CORS
+        // =========================
+
         if (request.method === "OPTIONS") {
             return new Response(null, {
                 status: 204,
@@ -23,30 +24,40 @@ export default {
 
 
         // =========================
-        // GET ALL SCORES
+        // GET SCORES
         // =========================
 
         if (
             request.method === "GET" &&
             url.pathname === "/api/scores"
         ) {
+
             try {
-                const result = await env.DB
-                    .prepare(`
-                        SELECT
-                            id,
-                            name,
-                            date,
-                            score,
-                            note,
-                            created
-                        FROM scores
-                        ORDER BY date ASC, created ASC
-                    `)
-                    .all();
+
+                const result =
+                    await env.DB
+                        .prepare(`
+                            SELECT
+                                id,
+                                user_id,
+                                name,
+                                date,
+                                score,
+                                note,
+                                created_at,
+                                created
+                            FROM scores
+                            WHERE user_id = ?
+                            ORDER BY date ASC, created ASC
+                        `)
+                        .bind(1)
+                        .all();
+
 
                 return new Response(
-                    JSON.stringify(result.results || []),
+                    JSON.stringify(
+                        result.results || []
+                    ),
                     {
                         status: 200,
                         headers: corsHeaders
@@ -54,6 +65,7 @@ export default {
                 );
 
             } catch (error) {
+
                 return new Response(
                     JSON.stringify({
                         success: false,
@@ -76,23 +88,37 @@ export default {
             request.method === "POST" &&
             url.pathname === "/api/scores"
         ) {
+
             try {
-                const data = await request.json();
+
+                const data =
+                    await request.json();
+
 
                 const name =
-                    String(data.name || "").trim();
+                    String(
+                        data.name || ""
+                    ).trim();
+
 
                 const date =
-                    String(data.date || "").trim();
+                    String(
+                        data.date || ""
+                    ).trim();
+
 
                 const score =
                     Number(data.score);
 
+
                 const note =
-                    String(data.note || "").trim();
+                    String(
+                        data.note || ""
+                    ).trim();
 
 
                 // Validasi
+
                 if (
                     !name ||
                     !date ||
@@ -100,10 +126,12 @@ export default {
                     score < 0 ||
                     score > 1000
                 ) {
+
                     return new Response(
                         JSON.stringify({
                             success: false,
-                            error: "Data tryout tidak valid."
+                            error:
+                                "Data tryout tidak valid."
                         }),
                         {
                             status: 400,
@@ -113,41 +141,54 @@ export default {
                 }
 
 
-                const id =
-                    crypto.randomUUID();
+                // =========================
+                // DATA DATABASE
+                // =========================
+
+                const userId = 1;
 
                 const created =
                     Date.now();
 
+                const createdAt =
+                    new Date().toISOString();
 
-                await env.DB
-                    .prepare(`
-                        INSERT INTO scores
-                        (
-                            id,
+
+                // =========================
+                // INSERT
+                // =========================
+
+                const result =
+                    await env.DB
+                        .prepare(`
+                            INSERT INTO scores
+                            (
+                                user_id,
+                                name,
+                                date,
+                                score,
+                                note,
+                                created_at,
+                                created
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        `)
+                        .bind(
+                            userId,
                             name,
                             date,
                             score,
                             note,
+                            createdAt,
                             created
                         )
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    `)
-                    .bind(
-                        id,
-                        name,
-                        date,
-                        score,
-                        note,
-                        created
-                    )
-                    .run();
+                        .run();
 
 
                 return new Response(
                     JSON.stringify({
                         success: true,
-                        id: id
+                        id: result.meta?.last_row_id ?? null
                     }),
                     {
                         status: 201,
@@ -155,7 +196,9 @@ export default {
                     }
                 );
 
+
             } catch (error) {
+
                 return new Response(
                     JSON.stringify({
                         success: false,
@@ -171,24 +214,51 @@ export default {
 
 
         // =========================
-        // DELETE ONE SCORE
+        // DELETE ONE
         // =========================
 
         if (
             request.method === "DELETE" &&
-            url.pathname.startsWith("/api/scores/")
+            url.pathname.startsWith(
+                "/api/scores/"
+            )
         ) {
+
             try {
+
                 const id =
-                    url.pathname.split("/").pop();
+                    Number(
+                        url.pathname
+                            .split("/")
+                            .pop()
+                    );
+
+
+                if (!Number.isInteger(id)) {
+
+                    return new Response(
+                        JSON.stringify({
+                            success: false,
+                            error: "ID tidak valid."
+                        }),
+                        {
+                            status: 400,
+                            headers: corsHeaders
+                        }
+                    );
+                }
 
 
                 await env.DB
                     .prepare(`
                         DELETE FROM scores
                         WHERE id = ?
+                        AND user_id = ?
                     `)
-                    .bind(id)
+                    .bind(
+                        id,
+                        1
+                    )
                     .run();
 
 
@@ -202,7 +272,9 @@ export default {
                     }
                 );
 
+
             } catch (error) {
+
                 return new Response(
                     JSON.stringify({
                         success: false,
@@ -225,12 +297,15 @@ export default {
             request.method === "DELETE" &&
             url.pathname === "/api/scores"
         ) {
+
             try {
 
                 await env.DB
                     .prepare(`
                         DELETE FROM scores
+                        WHERE user_id = ?
                     `)
+                    .bind(1)
                     .run();
 
 
@@ -244,7 +319,9 @@ export default {
                     }
                 );
 
+
             } catch (error) {
+
                 return new Response(
                     JSON.stringify({
                         success: false,
@@ -260,7 +337,7 @@ export default {
 
 
         // =========================
-        // DEFAULT
+        // NOT FOUND
         // =========================
 
         return new Response(
