@@ -12,19 +12,21 @@ export default {
 
 
         // =========================
-        // CORS
+        // CORS PREFLIGHT
         // =========================
 
         if (request.method === "OPTIONS") {
+
             return new Response(null, {
                 status: 204,
                 headers: corsHeaders
             });
+
         }
 
 
         // =========================
-        // GET SCORES
+        // GET ALL SCORES
         // =========================
 
         if (
@@ -39,7 +41,6 @@ export default {
                         .prepare(`
                             SELECT
                                 id,
-                                user_id,
                                 name,
                                 date,
                                 score,
@@ -47,10 +48,8 @@ export default {
                                 created_at,
                                 created
                             FROM scores
-                            WHERE user_id = ?
                             ORDER BY date ASC, created ASC
                         `)
-                        .bind(1)
                         .all();
 
 
@@ -76,7 +75,9 @@ export default {
                         headers: corsHeaders
                     }
                 );
+
             }
+
         }
 
 
@@ -117,7 +118,9 @@ export default {
                     ).trim();
 
 
-                // Validasi
+                // =========================
+                // VALIDATION
+                // =========================
 
                 if (
                     !name ||
@@ -138,24 +141,24 @@ export default {
                             headers: corsHeaders
                         }
                     );
+
                 }
 
 
                 // =========================
-                // DATA DATABASE
+                // TIMESTAMP
                 // =========================
-
-                const userId = 1;
-
-                const created =
-                    Date.now();
 
                 const createdAt =
                     new Date().toISOString();
 
 
+                const created =
+                    Date.now();
+
+
                 // =========================
-                // INSERT
+                // INSERT D1
                 // =========================
 
                 const result =
@@ -163,7 +166,6 @@ export default {
                         .prepare(`
                             INSERT INTO scores
                             (
-                                user_id,
                                 name,
                                 date,
                                 score,
@@ -171,10 +173,9 @@ export default {
                                 created_at,
                                 created
                             )
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                            VALUES (?, ?, ?, ?, ?, ?)
                         `)
                         .bind(
-                            userId,
                             name,
                             date,
                             score,
@@ -188,14 +189,15 @@ export default {
                 return new Response(
                     JSON.stringify({
                         success: true,
-                        id: result.meta?.last_row_id ?? null
+                        id:
+                            result.meta?.last_row_id
+                                ?? null
                     }),
                     {
                         status: 201,
                         headers: corsHeaders
                     }
                 );
-
 
             } catch (error) {
 
@@ -209,12 +211,14 @@ export default {
                         headers: corsHeaders
                     }
                 );
+
             }
+
         }
 
 
         // =========================
-        // DELETE ONE
+        // DELETE ONE SCORE
         // =========================
 
         if (
@@ -234,18 +238,22 @@ export default {
                     );
 
 
-                if (!Number.isInteger(id)) {
+                if (
+                    !Number.isInteger(id)
+                ) {
 
                     return new Response(
                         JSON.stringify({
                             success: false,
-                            error: "ID tidak valid."
+                            error:
+                                "ID tidak valid."
                         }),
                         {
                             status: 400,
                             headers: corsHeaders
                         }
                     );
+
                 }
 
 
@@ -253,12 +261,8 @@ export default {
                     .prepare(`
                         DELETE FROM scores
                         WHERE id = ?
-                        AND user_id = ?
                     `)
-                    .bind(
-                        id,
-                        1
-                    )
+                    .bind(id)
                     .run();
 
 
@@ -272,7 +276,6 @@ export default {
                     }
                 );
 
-
             } catch (error) {
 
                 return new Response(
@@ -285,12 +288,14 @@ export default {
                         headers: corsHeaders
                     }
                 );
+
             }
+
         }
 
 
         // =========================
-        // DELETE ALL
+        // DELETE ALL SCORES
         // =========================
 
         if (
@@ -303,9 +308,7 @@ export default {
                 await env.DB
                     .prepare(`
                         DELETE FROM scores
-                        WHERE user_id = ?
                     `)
-                    .bind(1)
                     .run();
 
 
@@ -319,6 +322,53 @@ export default {
                     }
                 );
 
+            } catch (error) {
+
+                return new Response(
+                    JSON.stringify({
+                        success: false,
+                        error: error.message
+                    }),
+                    {
+                        status: 500,
+                        headers: corsHeaders
+                    }
+                );
+
+            }
+
+        }
+
+
+        // =========================
+        // TEST DATABASE
+        // =========================
+
+        if (
+            request.method === "GET" &&
+            url.pathname === "/api/test"
+        ) {
+
+            try {
+
+                const result =
+                    await env.DB
+                        .prepare(`
+                            SELECT 1 AS test
+                        `)
+                        .first();
+
+
+                return new Response(
+                    JSON.stringify({
+                        success: true,
+                        database: result
+                    }),
+                    {
+                        status: 200,
+                        headers: corsHeaders
+                    }
+                );
 
             } catch (error) {
 
@@ -332,7 +382,9 @@ export default {
                         headers: corsHeaders
                     }
                 );
+
             }
+
         }
 
 
@@ -343,12 +395,14 @@ export default {
         return new Response(
             JSON.stringify({
                 success: false,
-                error: "Endpoint tidak ditemukan."
+                error:
+                    "Endpoint tidak ditemukan."
             }),
             {
                 status: 404,
                 headers: corsHeaders
             }
         );
+
     }
 };
