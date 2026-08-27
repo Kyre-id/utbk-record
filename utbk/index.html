@@ -1,53 +1,94 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="theme-color" content="#0b1220">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0b1220"
+    >
 
     <title>UTBK Tracker</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
     >
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
+
 
 <body>
 
 <div class="app">
 
-    <!-- HEADER -->
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
     <header class="header">
 
         <div class="brand">
+
             <div class="brand-icon">
                 U
             </div>
 
             <div>
-                <h1>UTBK Tracker</h1>
-                <p>Track your progress.</p>
+
+                <h1>
+                    UTBK Tracker
+                </h1>
+
+                <p>
+                    Track your progress.
+                </p>
+
             </div>
+
         </div>
 
-        <button id="themeToggle" class="icon-button">
+
+        <button
+            id="themeToggle"
+            class="icon-button"
+            type="button"
+            title="Ganti tema"
+        >
             ☾
         </button>
 
     </header>
 
 
-    <!-- HERO -->
+
+    <!-- =========================
+         HERO
+    ========================== -->
+
     <section class="hero">
 
         <div class="hero-text">
@@ -69,16 +110,23 @@
         </div>
 
 
+
         <!-- TARGET -->
+
         <div class="target-card">
 
             <div class="target-header">
-                <span>Target nilai</span>
+
+                <span>
+                    Target nilai
+                </span>
 
                 <strong id="targetValue">
                     650
                 </strong>
+
             </div>
+
 
             <div class="target-input">
 
@@ -90,7 +138,10 @@
                     value="650"
                 >
 
-                <button id="saveTarget">
+                <button
+                    id="saveTarget"
+                    type="button"
+                >
                     Simpan
                 </button>
 
@@ -101,12 +152,19 @@
     </section>
 
 
-    <!-- STATISTICS -->
+
+    <!-- =========================
+         STATISTICS
+    ========================== -->
+
     <section class="stats">
+
 
         <div class="stat-card">
 
-            <span>Tryout</span>
+            <span>
+                Tryout
+            </span>
 
             <strong id="countStat">
                 0
@@ -119,9 +177,12 @@
         </div>
 
 
+
         <div class="stat-card">
 
-            <span>Nilai terbaru</span>
+            <span>
+                Nilai terbaru
+            </span>
 
             <strong id="latestStat">
                 -
@@ -134,9 +195,12 @@
         </div>
 
 
+
         <div class="stat-card">
 
-            <span>Nilai tertinggi</span>
+            <span>
+                Nilai tertinggi
+            </span>
 
             <strong id="bestStat">
                 -
@@ -149,9 +213,12 @@
         </div>
 
 
+
         <div class="stat-card">
 
-            <span>Rata-rata</span>
+            <span>
+                Rata-rata
+            </span>
 
             <strong id="avgStat">
                 -
@@ -166,23 +233,86 @@
     </section>
 
 
-    <!-- MAIN CONTENT -->
+
+    <!-- =========================
+         SUBJECT SUMMARY
+    ========================== -->
+
+    <section class="panel subject-summary">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Nilai per mapel
+                </h3>
+
+                <p>
+                    Nilai tertinggi yang pernah kamu dapatkan
+                    di setiap mapel.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="subjectStats"
+            class="subject-grid"
+        >
+        </div>
+
+
+        <div
+            id="emptySubjects"
+            class="empty-subjects"
+        >
+
+            <div>
+                📚
+            </div>
+
+            <strong>
+                Belum ada data mapel
+            </strong>
+
+            <p>
+                Tambahkan tryout untuk melihat statistik mapel.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
     <section class="content">
 
 
-        <!-- GRAPH -->
+        <!-- =====================
+             GRAPH
+        ====================== -->
+
         <div class="panel chart-panel">
 
             <div class="panel-header">
 
                 <div>
+
                     <h3>
                         Grafik perkembangan
                     </h3>
 
                     <p>
-                        Nilai total dari setiap tryout
+                        Nilai dari setiap tryout.
                     </p>
+
                 </div>
 
 
@@ -207,9 +337,15 @@
 
             <div class="chart-container">
 
-                <canvas id="progressChart"></canvas>
+                <canvas
+                    id="progressChart"
+                ></canvas>
 
-                <div id="emptyChart" class="empty">
+
+                <div
+                    id="emptyChart"
+                    class="empty"
+                >
 
                     <div class="empty-icon">
                         📈
@@ -231,12 +367,16 @@
 
 
 
-        <!-- ADD FORM -->
+        <!-- =====================
+             ADD FORM
+        ====================== -->
+
         <div class="panel add-panel">
 
             <div class="panel-header">
 
                 <div>
+
                     <h3>
                         Tambah tryout
                     </h3>
@@ -244,13 +384,17 @@
                     <p>
                         Simpan hasil latihan terbaru.
                     </p>
+
                 </div>
 
             </div>
 
 
+
             <form id="scoreForm">
 
+
+                <!-- NAMA -->
 
                 <label>
 
@@ -266,6 +410,39 @@
                 </label>
 
 
+
+                <!-- MAPEL -->
+
+                <label>
+
+                    Mata pelajaran
+
+                    <input
+                        id="subjectInput"
+                        type="text"
+                        list="subjectList"
+                        placeholder="Contoh: Matematika"
+                        required
+                    >
+
+                    <datalist id="subjectList">
+
+                        <option value="Matematika">
+                        <option value="Bahasa Indonesia">
+                        <option value="Bahasa Inggris">
+                        <option value="Penalaran Umum">
+                        <option value="Pengetahuan dan Pemahaman Umum">
+                        <option value="Pemahaman Bacaan dan Menulis">
+                        <option value="Pengetahuan Kuantitatif">
+
+                    </datalist>
+
+                </label>
+
+
+
+                <!-- TANGGAL -->
+
                 <label>
 
                     Tanggal
@@ -279,9 +456,12 @@
                 </label>
 
 
+
+                <!-- NILAI -->
+
                 <label>
 
-                    Nilai total
+                    Nilai
 
                     <input
                         id="scoreInput"
@@ -295,10 +475,15 @@
                 </label>
 
 
+
+                <!-- CATATAN -->
+
                 <label>
 
                     Catatan
-                    <span>(opsional)</span>
+                    <span>
+                        (opsional)
+                    </span>
 
                     <textarea
                         id="noteInput"
@@ -309,13 +494,12 @@
                 </label>
 
 
+
                 <button
                     class="primary-button"
                     type="submit"
                 >
-
                     ＋ Tambah nilai
-
                 </button>
 
             </form>
@@ -326,7 +510,10 @@
 
 
 
-    <!-- HISTORY -->
+    <!-- =========================
+         HISTORY
+    ========================== -->
+
     <section class="panel history">
 
         <div class="panel-header">
@@ -347,13 +534,13 @@
             <button
                 id="clearAll"
                 class="danger-button"
+                type="button"
             >
-
                 Hapus semua
-
             </button>
 
         </div>
+
 
 
         <div class="table-container">
@@ -366,6 +553,10 @@
 
                         <th>
                             Tryout
+                        </th>
+
+                        <th>
+                            Mapel
                         </th>
 
                         <th>
@@ -397,6 +588,7 @@
             </table>
 
 
+
             <div
                 id="emptyHistory"
                 class="empty-history"
@@ -421,16 +613,22 @@
     </section>
 
 
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
     <footer>
-
         UTBK Tracker · Local version
-
     </footer>
 
+
 </div>
+
 
 
 <script src="app.js"></script>
 
 </body>
+
 </html>
