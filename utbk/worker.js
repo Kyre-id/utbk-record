@@ -13,6 +13,16 @@ export default {
       "Content-Type": "application/json"
     };
 
+    if (url.pathname === "/api/test-db") {
+  const result = await env.DB
+    .prepare("SELECT 1 AS test")
+    .first();
+
+  return Response.json(result, {
+    headers: corsHeaders
+  });
+}
+
 
     // =========================
     // CORS PREFLIGHT
@@ -886,15 +896,5 @@ export default {
       404
     );
 
-  }
-};
-
-export default {
-  async fetch(request, env) {
-    const result = await env.DB
-      .prepare("SELECT 1 AS test")
-      .first();
-
-    return Response.json(result);
   }
 };
