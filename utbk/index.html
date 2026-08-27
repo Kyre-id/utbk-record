@@ -1,54 +1,30 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#0b1220"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1220">
 
     <title>UTBK Tracker</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
     >
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
-
 
 <body>
 
 <div class="app">
 
-
-    <!-- =========================
-         HEADER
-    ========================== -->
-
+    <!-- HEADER -->
     <header class="header">
 
         <div class="brand">
@@ -58,37 +34,20 @@
             </div>
 
             <div>
-
-                <h1>
-                    UTBK Tracker
-                </h1>
-
-                <p>
-                    Track your progress.
-                </p>
-
+                <h1>UTBK Tracker</h1>
+                <p>Track your progress.</p>
             </div>
 
         </div>
 
-
-        <button
-            id="themeToggle"
-            class="icon-button"
-            type="button"
-            title="Ganti tema"
-        >
+        <button id="themeToggle" class="icon-button">
             ☾
         </button>
 
     </header>
 
 
-
-    <!-- =========================
-         HERO
-    ========================== -->
-
+    <!-- HERO -->
     <section class="hero">
 
         <div class="hero-text">
@@ -103,16 +62,14 @@
             </h2>
 
             <p>
-                Catat setiap tryout dan lihat perjalanan
-                nilai kamu dari waktu ke waktu.
+                Catat setiap tryout, pantau perkembangan,
+                dan cari tahu bagian mana yang harus ditingkatkan.
             </p>
 
         </div>
 
 
-
         <!-- TARGET -->
-
         <div class="target-card">
 
             <div class="target-header">
@@ -127,7 +84,6 @@
 
             </div>
 
-
             <div class="target-input">
 
                 <input
@@ -138,27 +94,86 @@
                     value="650"
                 >
 
-                <button
-                    id="saveTarget"
-                    type="button"
-                >
+                <button id="saveTarget">
                     Simpan
                 </button>
 
             </div>
+
+            <div class="target-progress">
+
+                <div
+                    id="targetProgressBar"
+                    class="target-progress-bar"
+                ></div>
+
+            </div>
+
+            <small id="targetProgressText">
+                Belum ada nilai
+            </small>
 
         </div>
 
     </section>
 
 
+    <!-- FILTER -->
+    <section class="panel filter-panel">
 
-    <!-- =========================
-         STATISTICS
-    ========================== -->
+        <div>
 
+            <strong>
+                Filter mapel
+            </strong>
+
+            <p>
+                Pilih mapel untuk melihat analisis khusus.
+            </p>
+
+        </div>
+
+        <select id="subjectFilter">
+
+            <option value="all">
+                Semua Mapel
+            </option>
+
+            <option value="PU">
+                Penalaran Umum
+            </option>
+
+            <option value="PPU">
+                Pengetahuan & Pemahaman Umum
+            </option>
+
+            <option value="PBM">
+                Pemahaman Bacaan & Menulis
+            </option>
+
+            <option value="PK">
+                Pengetahuan Kuantitatif
+            </option>
+
+            <option value="Literasi Indonesia">
+                Literasi Bahasa Indonesia
+            </option>
+
+            <option value="Literasi Inggris">
+                Literasi Bahasa Inggris
+            </option>
+
+            <option value="Penalaran Matematika">
+                Penalaran Matematika
+            </option>
+
+        </select>
+
+    </section>
+
+
+    <!-- STATISTICS -->
     <section class="stats">
-
 
         <div class="stat-card">
 
@@ -175,7 +190,6 @@
             </small>
 
         </div>
-
 
 
         <div class="stat-card">
@@ -195,7 +209,6 @@
         </div>
 
 
-
         <div class="stat-card">
 
             <span>
@@ -213,7 +226,6 @@
         </div>
 
 
-
         <div class="stat-card">
 
             <span>
@@ -225,7 +237,7 @@
             </strong>
 
             <small>
-                Semua tryout
+                Sesuai filter
             </small>
 
         </div>
@@ -233,24 +245,87 @@
     </section>
 
 
+    <!-- INSIGHT -->
+    <section class="insight-grid">
 
-    <!-- =========================
-         SUBJECT SUMMARY
-    ========================== -->
+        <div class="panel focus-card">
 
-    <section class="panel subject-summary">
+            <div class="section-title">
+
+                <div class="section-icon">
+                    🔥
+                </div>
+
+                <div>
+                    <h3>
+                        Yang harus ditingkatkan
+                    </h3>
+
+                    <p>
+                        Berdasarkan performa nilai kamu.
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="focusContent">
+
+                <div class="empty-small">
+                    Belum cukup data untuk dianalisis.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel insight-card">
+
+            <div class="section-title">
+
+                <div class="section-icon">
+                    💡
+                </div>
+
+                <div>
+                    <h3>
+                        Insight
+                    </h3>
+
+                    <p>
+                        Ringkasan perkembangan terbaru.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div id="insightContent">
+
+                <div class="empty-small">
+                    Tambahkan data tryout untuk melihat insight.
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SUBJECT ANALYSIS -->
+    <section class="panel subject-analysis">
 
         <div class="panel-header">
 
             <div>
 
                 <h3>
-                    Nilai per mapel
+                    Analisis per mapel
                 </h3>
 
                 <p>
-                    Nilai tertinggi yang pernah kamu dapatkan
-                    di setiap mapel.
+                    Perbandingan performa setiap mapel.
                 </p>
 
             </div>
@@ -259,46 +334,18 @@
 
 
         <div
-            id="subjectStats"
+            id="subjectAnalysis"
             class="subject-grid"
-        >
-        </div>
-
-
-        <div
-            id="emptySubjects"
-            class="empty-subjects"
-        >
-
-            <div>
-                📚
-            </div>
-
-            <strong>
-                Belum ada data mapel
-            </strong>
-
-            <p>
-                Tambahkan tryout untuk melihat statistik mapel.
-            </p>
-
-        </div>
+        ></div>
 
     </section>
 
 
-
-    <!-- =========================
-         MAIN CONTENT
-    ========================== -->
-
+    <!-- MAIN CONTENT -->
     <section class="content">
 
 
-        <!-- =====================
-             GRAPH
-        ====================== -->
-
+        <!-- GRAPH -->
         <div class="panel chart-panel">
 
             <div class="panel-header">
@@ -309,8 +356,8 @@
                         Grafik perkembangan
                     </h3>
 
-                    <p>
-                        Nilai dari setiap tryout.
+                    <p id="chartDescription">
+                        Nilai dari setiap tryout
                     </p>
 
                 </div>
@@ -337,15 +384,9 @@
 
             <div class="chart-container">
 
-                <canvas
-                    id="progressChart"
-                ></canvas>
+                <canvas id="progressChart"></canvas>
 
-
-                <div
-                    id="emptyChart"
-                    class="empty"
-                >
+                <div id="emptyChart" class="empty">
 
                     <div class="empty-icon">
                         📈
@@ -366,11 +407,7 @@
         </div>
 
 
-
-        <!-- =====================
-             ADD FORM
-        ====================== -->
-
+        <!-- ADD FORM -->
         <div class="panel add-panel">
 
             <div class="panel-header">
@@ -382,7 +419,7 @@
                     </h3>
 
                     <p>
-                        Simpan hasil latihan terbaru.
+                        Satu record untuk satu mapel.
                     </p>
 
                 </div>
@@ -390,11 +427,7 @@
             </div>
 
 
-
             <form id="scoreForm">
-
-
-                <!-- NAMA -->
 
                 <label>
 
@@ -410,38 +443,51 @@
                 </label>
 
 
-
-                <!-- MAPEL -->
-
                 <label>
 
-                    Mata pelajaran
+                    Mapel
 
-                    <input
+                    <select
                         id="subjectInput"
-                        type="text"
-                        list="subjectList"
-                        placeholder="Contoh: Matematika"
                         required
                     >
 
-                    <datalist id="subjectList">
+                        <option value="">
+                            Pilih mapel
+                        </option>
 
-                        <option value="Matematika">
-                        <option value="Bahasa Indonesia">
-                        <option value="Bahasa Inggris">
-                        <option value="Penalaran Umum">
-                        <option value="Pengetahuan dan Pemahaman Umum">
-                        <option value="Pemahaman Bacaan dan Menulis">
-                        <option value="Pengetahuan Kuantitatif">
+                        <option value="PU">
+                            Penalaran Umum
+                        </option>
 
-                    </datalist>
+                        <option value="PPU">
+                            Pengetahuan & Pemahaman Umum
+                        </option>
+
+                        <option value="PBM">
+                            Pemahaman Bacaan & Menulis
+                        </option>
+
+                        <option value="PK">
+                            Pengetahuan Kuantitatif
+                        </option>
+
+                        <option value="Literasi Indonesia">
+                            Literasi Bahasa Indonesia
+                        </option>
+
+                        <option value="Literasi Inggris">
+                            Literasi Bahasa Inggris
+                        </option>
+
+                        <option value="Penalaran Matematika">
+                            Penalaran Matematika
+                        </option>
+
+                    </select>
 
                 </label>
 
-
-
-                <!-- TANGGAL -->
 
                 <label>
 
@@ -455,9 +501,6 @@
 
                 </label>
 
-
-
-                <!-- NILAI -->
 
                 <label>
 
@@ -475,24 +518,18 @@
                 </label>
 
 
-
-                <!-- CATATAN -->
-
                 <label>
 
                     Catatan
-                    <span>
-                        (opsional)
-                    </span>
+                    <span>(opsional)</span>
 
                     <textarea
                         id="noteInput"
                         rows="3"
-                        placeholder="Contoh: Kurang di PBM dan PK"
+                        placeholder="Contoh: Masih kurang di PK"
                     ></textarea>
 
                 </label>
-
 
 
                 <button
@@ -509,11 +546,7 @@
     </section>
 
 
-
-    <!-- =========================
-         HISTORY
-    ========================== -->
-
+    <!-- HISTORY -->
     <section class="panel history">
 
         <div class="panel-header">
@@ -534,13 +567,11 @@
             <button
                 id="clearAll"
                 class="danger-button"
-                type="button"
             >
                 Hapus semua
             </button>
 
         </div>
-
 
 
         <div class="table-container">
@@ -588,7 +619,6 @@
             </table>
 
 
-
             <div
                 id="emptyHistory"
                 class="empty-history"
@@ -613,22 +643,14 @@
     </section>
 
 
-
-    <!-- =========================
-         FOOTER
-    ========================== -->
-
     <footer>
         UTBK Tracker · Local version
     </footer>
 
-
 </div>
-
 
 
 <script src="app.js"></script>
 
 </body>
-
 </html>
