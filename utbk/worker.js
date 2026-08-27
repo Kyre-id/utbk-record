@@ -890,10 +890,11 @@ export default {
 };
 
 type OrderRow = {
-  Id: string;
+  Id; string;
   CustomerName: string;
   OrderDate: number;
 };
+
 export default {
   async fetch(request, env) {
     const result = await env.DB
