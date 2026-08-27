@@ -1,0 +1,12 @@
+{
+  "name": "nama-worker-lu",
+  "main": "worker.js",
+  "compatibility_date": "2026-08-27",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nama-d1-lu",
+      "database_id": "ID-DATABASE-D1-LU"
+    }
+  ]
+}
